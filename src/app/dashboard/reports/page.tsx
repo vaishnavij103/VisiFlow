@@ -8,6 +8,8 @@ import { ArrowLeft, Download, FileText, TrendingUp, Users, Calendar } from "luci
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Bar, BarChart, XAxis, YAxis, CartesianGrid } from "recharts";
 import { Badge } from "@/components/ui/badge";
+import { getVisitors } from "@/lib/vms-store";
+import { useToast } from "@/hooks/use-toast";
 
 const MOCK_CHART_DATA = [
   { name: 'Mon', visitors: 12 },
@@ -28,18 +30,59 @@ const chartConfig = {
 
 export default function ReportsPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  const handleExportCSV = () => {
+    const data = getVisitors();
+    const headers = ["ID", "First Name", "Last Name", "Mobile", "Type", "Check-In", "Check-Out", "Status"];
+    
+    const csvRows = [
+      headers.join(","),
+      ...data.map(v => [
+        v.id,
+        v.firstName,
+        v.lastName,
+        v.mobile,
+        v.type,
+        new Date(v.checkInTime).toLocaleString(),
+        v.checkOutTime ? new Date(v.checkOutTime).toLocaleString() : "N/A",
+        v.status
+      ].map(field => `"${field}"`).join(","))
+    ];
+
+    const csvContent = csvRows.join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `visiflow_report_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Report Exported",
+      description: "CSV report has been downloaded successfully.",
+    });
+  };
+
+  const handleExportPDF = () => {
+    // Basic implementation using browser print functionality
+    // This is the most reliable client-side PDF generation without extra heavy libraries
+    window.print();
+  };
+
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background p-6 print:p-0">
       <div className="max-w-5xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 print:hidden">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full bg-white shadow-sm">
               <ArrowLeft className="w-6 h-6" />
@@ -47,13 +90,26 @@ export default function ReportsPage() {
             <h1 className="text-3xl font-bold">Analytics & Reports</h1>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" className="h-12 rounded-xl bg-white flex-1 md:flex-none">
+            <Button 
+              variant="outline" 
+              className="h-12 rounded-xl bg-white flex-1 md:flex-none"
+              onClick={handleExportCSV}
+            >
               <Download className="w-4 h-4 mr-2" /> Export CSV
             </Button>
-            <Button className="h-12 rounded-xl bg-green-600 hover:bg-green-700 flex-1 md:flex-none">
+            <Button 
+              className="h-12 rounded-xl bg-green-600 hover:bg-green-700 flex-1 md:flex-none"
+              onClick={handleExportPDF}
+            >
               <FileText className="w-4 h-4 mr-2" /> Export PDF
             </Button>
           </div>
+        </div>
+
+        {/* Print Header (Visible only when printing) */}
+        <div className="hidden print:block mb-10 border-b pb-6">
+          <h1 className="text-4xl font-bold text-primary">VisiFlow Report</h1>
+          <p className="text-muted-foreground mt-2">Generated on {new Date().toLocaleString()}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -86,7 +142,7 @@ export default function ReportsPage() {
           </Card>
         </div>
 
-        <Card className="p-8 bg-white shadow-sm mb-8">
+        <Card className="p-8 bg-white shadow-sm mb-8 break-inside-avoid">
           <h3 className="text-xl font-bold mb-8">Weekly Visitor Traffic</h3>
           <div className="h-[300px] w-full">
             <ChartContainer config={chartConfig} className="h-full w-full">
@@ -115,8 +171,8 @@ export default function ReportsPage() {
           </div>
         </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="p-6 shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:grid-cols-2">
+          <Card className="p-6 shadow-sm break-inside-avoid">
             <h4 className="font-bold mb-4">Top Frequent Visitors</h4>
             <div className="space-y-4">
               {[1, 2, 3].map(i => (
@@ -130,7 +186,7 @@ export default function ReportsPage() {
               ))}
             </div>
           </Card>
-          <Card className="p-6 shadow-sm">
+          <Card className="p-6 shadow-sm break-inside-avoid">
             <h4 className="font-bold mb-4">Visitor Purposes</h4>
             <div className="space-y-4">
               <div className="space-y-2">
