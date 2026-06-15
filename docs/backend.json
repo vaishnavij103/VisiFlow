@@ -1,0 +1,52 @@
+
+{
+  "entities": {
+    "Visitor": {
+      "title": "Visitor",
+      "description": "Information about a person visiting the facility.",
+      "type": "object",
+      "properties": {
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "mobile": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "gender": { "type": "string", "enum": ["Male", "Female", "Other"] },
+        "company": { "type": "string" },
+        "personToVisit": { "type": "string" },
+        "purpose": { "type": "string" },
+        "checkInTime": { "type": "string", "format": "date-time" },
+        "checkOutTime": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["Checked-In", "Checked-Out"] },
+        "type": { "type": "string", "enum": ["Guest", "Employee"] },
+        "location": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "signatureUrl": { "type": "string" }
+      },
+      "required": ["firstName", "lastName", "mobile", "type", "location", "status"]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Extended user information for authenticated staff.",
+      "type": "object",
+      "properties": {
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "role": { "type": "string", "enum": ["Admin", "Receptionist"] },
+        "preferredLocation": { "type": "string" }
+      }
+    }
+  },
+  "auth": {
+    "providers": ["password"]
+  },
+  "firestore": {
+    "/visitors/{visitorId}": {
+      "schema": "Visitor",
+      "description": "Collection of all visitor records across all locations."
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profiles and preferences."
+    }
+  }
+}

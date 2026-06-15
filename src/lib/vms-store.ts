@@ -1,3 +1,6 @@
+
+'use client';
+
 export type VisitorStatus = 'Checked-In' | 'Checked-Out';
 
 export interface Visitor {
@@ -17,9 +20,10 @@ export interface Visitor {
   signatureUrl?: string;
   type: 'Guest' | 'Employee';
   employeeCode?: string;
+  location: string;
 }
 
-// In-memory mock data
+// In-memory mock data (In a real app, this would be fetched from Firestore based on location)
 let visitors: Visitor[] = [
   {
     id: 'V-1001',
@@ -33,7 +37,8 @@ let visitors: Visitor[] = [
     purpose: 'Business Meeting',
     checkInTime: new Date(new Date().setHours(new Date().getHours() - 2)),
     status: 'Checked-In',
-    type: 'Guest'
+    type: 'Guest',
+    location: 'Main Office'
   },
   {
     id: 'V-1002',
@@ -47,11 +52,17 @@ let visitors: Visitor[] = [
     purpose: 'Interview',
     checkInTime: new Date(new Date().setHours(new Date().getHours() - 4)),
     status: 'Checked-In',
-    type: 'Guest'
+    type: 'Guest',
+    location: 'Warehouse A'
   }
 ];
 
-export const getVisitors = () => visitors;
+export const getVisitors = (location?: string) => {
+  if (location && location !== 'All') {
+    return visitors.filter(v => v.location === location);
+  }
+  return visitors;
+};
 
 export const addVisitor = (visitor: Omit<Visitor, 'id' | 'checkInTime' | 'status'>) => {
   const newVisitor: Visitor = {
@@ -70,15 +81,17 @@ export const checkOutVisitor = (id: string) => {
   );
 };
 
-export const getStats = () => {
+export const getStats = (location?: string) => {
+  const filtered = getVisitors(location);
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   
-  const visitorsToday = visitors.filter(v => new Date(v.checkInTime) >= today).length;
-  // Simplified week/month stats for the demo
+  const visitorsToday = filtered.filter(v => new Date(v.checkInTime) >= today).length;
   return {
     today: visitorsToday,
     week: visitorsToday + 12,
     month: visitorsToday + 48
   };
 };
+
+export const LOCATIONS = ['All', 'Main Office', 'Warehouse A', 'Tech Park', 'Regional Hub'];
