@@ -1,12 +1,13 @@
 "use client"
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Download, FileJson, FileText, TrendingUp, Users, Calendar } from "lucide-react";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Bar, BarChart, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip } from "recharts";
+import { ArrowLeft, Download, FileText, TrendingUp, Users, Calendar } from "lucide-react";
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid } from "recharts";
+import { Badge } from "@/components/ui/badge";
 
 const MOCK_CHART_DATA = [
   { name: 'Mon', visitors: 12 },
@@ -18,13 +19,27 @@ const MOCK_CHART_DATA = [
   { name: 'Sun', visitors: 3 },
 ];
 
+const chartConfig = {
+  visitors: {
+    label: "Visitors",
+    color: "hsl(var(--chart-1))",
+  },
+} satisfies ChartConfig;
+
 export default function ReportsPage() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full bg-white shadow-sm">
               <ArrowLeft className="w-6 h-6" />
@@ -32,10 +47,10 @@ export default function ReportsPage() {
             <h1 className="text-3xl font-bold">Analytics & Reports</h1>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" className="h-12 rounded-xl bg-white">
+            <Button variant="outline" className="h-12 rounded-xl bg-white flex-1 md:flex-none">
               <Download className="w-4 h-4 mr-2" /> Export CSV
             </Button>
-            <Button className="h-12 rounded-xl bg-green-600 hover:bg-green-700">
+            <Button className="h-12 rounded-xl bg-green-600 hover:bg-green-700 flex-1 md:flex-none">
               <FileText className="w-4 h-4 mr-2" /> Export PDF
             </Button>
           </div>
@@ -74,38 +89,29 @@ export default function ReportsPage() {
         <Card className="p-8 bg-white shadow-sm mb-8">
           <h3 className="text-xl font-bold mb-8">Weekly Visitor Traffic</h3>
           <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ChartContainer config={chartConfig} className="h-full w-full">
               <BarChart data={MOCK_CHART_DATA}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" />
                 <XAxis 
                   dataKey="name" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }}
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12, fontWeight: 600 }}
                   dy={10}
                 />
                 <YAxis hide />
-                <Tooltip 
-                  cursor={{ fill: '#f8fafc' }}
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div className="bg-primary text-white p-2 rounded-lg text-xs font-bold shadow-lg">
-                          {payload[0].value} Visitors
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
+                <ChartTooltip 
+                  cursor={{ fill: 'hsl(var(--muted))', opacity: 0.4 }}
+                  content={<ChartTooltipContent hideLabel />}
                 />
                 <Bar 
                   dataKey="visitors" 
-                  fill="#2E5BFF" 
+                  fill="var(--color-visitors)" 
                   radius={[6, 6, 0, 0]} 
                   barSize={40}
                 />
               </BarChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           </div>
         </Card>
 
@@ -117,9 +123,9 @@ export default function ReportsPage() {
                 <div key={i} className="flex items-center justify-between py-2 border-b last:border-0">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold">JD</div>
-                    <span className="font-medium">John Doe</span>
+                    <span className="font-medium">Visitor {i}</span>
                   </div>
-                  <Badge variant="outline">8 Visits</Badge>
+                  <Badge variant="outline">{10 - i} Visits</Badge>
                 </div>
               ))}
             </div>
@@ -127,19 +133,23 @@ export default function ReportsPage() {
           <Card className="p-6 shadow-sm">
             <h4 className="font-bold mb-4">Visitor Purposes</h4>
             <div className="space-y-4">
-              <div className="flex items-center justify-between text-sm">
-                <span>Business Meeting</span>
-                <span className="font-bold">45%</span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span>Business Meeting</span>
+                  <span className="font-bold">45%</span>
+                </div>
+                <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-primary w-[45%]" />
+                </div>
               </div>
-              <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-primary w-[45%]" />
-              </div>
-              <div className="flex items-center justify-between text-sm mt-4">
-                <span>Interviews</span>
-                <span className="font-bold">25%</span>
-              </div>
-              <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-accent w-[25%]" />
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm mt-4">
+                  <span>Interviews</span>
+                  <span className="font-bold">25%</span>
+                </div>
+                <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-accent w-[25%]" />
+                </div>
               </div>
             </div>
           </Card>
