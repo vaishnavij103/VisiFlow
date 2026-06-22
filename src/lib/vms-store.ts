@@ -94,4 +94,13 @@ export const getStats = (location?: string) => {
   };
 };
 
-export const LOCATIONS = ['All', 'Main Office', 'Warehouse A', 'Tech Park', 'Regional Hub'];
+export const LOCATIONS = ['All',
+  "Pune",
+  "Mumbai",
+  "Ahmedabad",
+  "Coimbatore",
+  "Hyderabad",
+  "Bangalore(Domlur)",
+  "Bangalore(Signet)",
+  "Chennai",
+];

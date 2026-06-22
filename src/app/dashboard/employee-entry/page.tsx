@@ -34,7 +34,7 @@ export default function EmployeeEntryPage() {
   });
 
   const handleSearch = () => {
-    const emp = MOCK_EMPLOYEES.find(e => e.code.toLowerCase() === code.toLowerCase());
+    const emp = MOCK_EMPLOYEES.find(e => e.code.toLowerCase() === code.toLowerCase() || e.mobile === code);
     if (emp) {
       setFormData(prev => ({
         ...prev,
@@ -72,10 +72,10 @@ export default function EmployeeEntryPage() {
 
         {!isFound ? (
           <Card className="p-10 text-center max-w-md mx-auto shadow-xl">
-            <h3 className="text-xl font-bold mb-6">Enter Employee Code</h3>
+            <h3 className="text-xl font-bold mb-6">Enter Employee Code Or Mobile Number</h3>
             <div className="space-y-4">
-              <Input 
-                placeholder="Ex: E101" 
+              <Input
+                placeholder="Ex: E101 or 9000000001"
                 className="h-14 text-2xl text-center rounded-xl font-mono uppercase tracking-widest"
                 value={code}
                 onChange={e => setCode(e.target.value)}

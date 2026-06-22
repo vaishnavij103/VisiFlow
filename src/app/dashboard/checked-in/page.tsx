@@ -1,49 +1,52 @@
 
 "use client"
-
 import React, { useState, useEffect, useMemo } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { 
-  ArrowLeft, 
-  Search, 
-  Filter, 
-  ClipboardList, 
-  ChevronRight, 
-  User, 
+import {
+  ArrowLeft,
+  Search,
+  Filter,
+  ClipboardList,
+  ChevronRight,
+  User,
   UserSquare2,
   MapPin
 } from "lucide-react";
 import { getVisitors, Visitor, LOCATIONS } from "@/lib/vms-store";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select";
 
 export default function CheckedInPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [showGuests, setShowGuests] = useState(true);
   const [showEmployees, setShowEmployees] = useState(true);
-  const [location, setLocation] = useState(searchParams.get('location') || "All");
+  const [location, setLocation] = useState("All");
   const [visitors, setVisitors] = useState<Visitor[]>([]);
 
   useEffect(() => {
     setVisitors(getVisitors(location).filter(v => v.status === 'Checked-In'));
   }, [location]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setLocation(params.get("location") || "All");
+  }, []);
+
   const filteredVisitors = useMemo(() => {
     return visitors.filter(v => {
-      const matchesSearch = `${v.firstName} ${v.lastName}`.toLowerCase().includes(search.toLowerCase()) || 
-                            v.mobile.includes(search);
+      const matchesSearch = `${v.firstName} ${v.lastName}`.toLowerCase().includes(search.toLowerCase()) ||
+        v.mobile.includes(search);
       const matchesType = (v.type === 'Guest' && showGuests) || (v.type === 'Employee' && showEmployees);
       return matchesSearch && matchesType;
     });
@@ -63,7 +66,7 @@ export default function CheckedInPage() {
     return groups;
   }, [filteredVisitors]);
 
-  const sortedDates = Object.keys(groupedVisitors).sort((a, b) => 
+  const sortedDates = Object.keys(groupedVisitors).sort((a, b) =>
     new Date(b).getTime() - new Date(a).getTime()
   );
 
@@ -77,10 +80,10 @@ export default function CheckedInPage() {
       <div className="bg-[#E65100] text-white p-4 shadow-md">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => router.back()} 
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.back()}
               className="text-white hover:bg-white/10 rounded-full"
             >
               <ArrowLeft className="w-6 h-6" />
@@ -112,29 +115,29 @@ export default function CheckedInPage() {
           <div className="flex items-center gap-8">
             <div className="flex items-center space-x-2">
               <label htmlFor="guest" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Guest</label>
-              <Checkbox 
-                id="guest" 
-                checked={showGuests} 
+              <Checkbox
+                id="guest"
+                checked={showGuests}
                 onCheckedChange={(checked) => setShowGuests(!!checked)}
                 className="w-6 h-6 border-2 border-orange-500 data-[state=checked]:bg-orange-500 rounded"
               />
             </div>
             <div className="flex items-center space-x-2">
               <label htmlFor="employee" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Employee</label>
-              <Checkbox 
-                id="employee" 
-                checked={showEmployees} 
+              <Checkbox
+                id="employee"
+                checked={showEmployees}
                 onCheckedChange={(checked) => setShowEmployees(!!checked)}
                 className="w-6 h-6 border-2 border-orange-500 data-[state=checked]:bg-orange-500 rounded"
               />
             </div>
           </div>
-          
+
           <div className="flex items-center gap-4 w-full md:w-auto">
             <div className="relative flex-1 md:w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input 
-                placeholder="Search visitors..." 
+              <input
+                placeholder="Search visitors..."
                 className="w-full pl-10 pr-4 h-10 rounded-full bg-slate-100 dark:bg-slate-800 border-none text-sm outline-none"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -165,8 +168,8 @@ export default function CheckedInPage() {
 
                 <div className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
                   {groupedVisitors[date].map(visitor => (
-                    <div 
-                      key={visitor.id} 
+                    <div
+                      key={visitor.id}
                       className="flex items-center p-4 md:p-6 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
                     >
                       <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-slate-100 dark:border-slate-800 overflow-hidden relative flex-shrink-0 mr-4 md:mr-6">
